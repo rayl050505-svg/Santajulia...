@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santajulia. — Subir archivos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2A33;
+    --paper:#EEEFE6;
+    --paper-2:#E4E4D4;
+    --green:#233F2C;
+    --green-deep:#152318;
+    --gold:#A9863C;
+    --gold-light:#DCC998;
+    --brick:#8C3A2B;
+    --line: rgba(28,42,51,0.18);
+    --line-strong: rgba(28,42,51,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .wrap{
+    width:100%;
+    max-width:640px;
+    padding:0 24px 80px;
+  }
+  header{
+    padding:56px 0 28px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:36px;
+  }
+  .brand-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:0 0 10px;
+  }
+  .brand-row img{
+    width:34px;
+    height:34px;
+    display:block;
+    flex-shrink:0;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+    margin:0;
+  }
+  .tagline{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:15px;
+    color:var(--green);
+    opacity:.85;
+    margin:0 0 18px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:500;
+    font-size:52px;
+    line-height:1.02;
+    margin:0 0 14px;
+    color:var(--green-deep);
+  }
+  .lede{
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink);
+    opacity:.82;
+    margin:0;
+    max-width:46ch;
+  }
+  .field{
+    margin-bottom:22px;
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--green);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .field input[type=text]{
+    width:100%;
+    padding:12px 14px;
+    font-family:'Work Sans', sans-serif;
+    font-size:15px;
+    border:1px solid var(--line-strong);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field input[type=text]:focus{
+    outline:2px solid var(--gold);
+    outline-offset:1px;
+  }
+
+  #dropzone{
+    border:1.5px dashed var(--line-strong);
+    border-radius:6px;
+    background:#fff;
+    padding:40px 24px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  #dropzone.drag{
+    border-color:var(--gold);
+    background:var(--gold-light);
+  }
+  #dropzone .icon{
+    font-size:28px;
+    color:var(--gold);
+    margin-bottom:10px;
+    display:block;
+  }
+  #dropzone .main-txt{
+    font-size:16px;
+    font-weight:500;
+    margin:0 0 4px;
+  }
+  #dropzone .sub-txt{
+    font-size:13px;
+    color:var(--ink);
+    opacity:.6;
+    margin:0;
+  }
+  #fileInput{ display:none; }
+
+  #queue{
+    margin-top:24px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px 14px;
+  }
+  .item .name{
+    flex:1;
+    font-size:13.5px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .item .size{
+    font-size:12px;
+    color:var(--ink);
+    opacity:.55;
+    flex-shrink:0;
+  }
+  .item .bar-wrap{
+    position:absolute;
+  }
+  .item .status{
+    font-size:12px;
+    font-weight:600;
+    flex-shrink:0;
+    min-width:78px;
+    text-align:right;
+  }
+  .status.pending{ color:var(--ink); opacity:.5; }
+  .status.uploading{ color:var(--gold); }
+  .status.done{ color:var(--green); }
+  .status.error{ color:var(--brick); }
+
+  .item{ position:relative; overflow:hidden; }
+  .progressBar{
+    position:absolute;
+    left:0; bottom:0;
+    height:2px;
+    background:var(--gold);
+    width:0%;
+    transition:width .15s ease;
+  }
+
+  .actions{
+    margin-top:24px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  button#uploadBtn{
+    font-family:'Work Sans', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:.02em;
+    color:#fff;
+    background:var(--green-deep);
+    border:none;
+    border-radius:4px;
+    padding:13px 26px;
+    cursor:pointer;
+  }
+  button#uploadBtn:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+  }
+  button#uploadBtn:hover:not(:disabled){
+    background:var(--green);
+  }
+
+  .ticket{
+    margin-top:28px;
+    border:1.5px dashed var(--gold);
+    border-radius:4px;
+    background:#fff;
+    padding:16px 18px;
+    display:none;
+    align-items:center;
+    gap:14px;
+  }
+  .ticket.show{ display:flex; }
+  .ticket .num{
+    font-family:'Fraunces', serif;
+    font-size:26px;
+    color:var(--brick);
+    line-height:1;
+  }
+  .ticket .txt{
+    font-size:13px;
+    color:var(--ink);
+    opacity:.75;
+    line-height:1.5;
+  }
+
+  .filesSection{
+    margin-top:64px;
+    padding-top:32px;
+    border-top:1px solid var(--line);
+  }
+  .filesSection h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:22px;
+    color:var(--green-deep);
+    margin:0 0 4px;
+  }
+  .filesSection .sub{
+    font-size:13px;
+    color:var(--ink);
+    opacity:.6;
+    margin:0 0 20px;
+  }
+  .fileRow{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .fileRow:last-child{ border-bottom:none; }
+  .fileRow a{
+    flex:1;
+    font-size:14px;
+    color:var(--ink);
+    text-decoration:none;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .fileRow a:hover{ color:var(--brick); }
+  .fileRow .meta{
+    font-size:12px;
+    color:var(--ink);
+    opacity:.5;
+    flex-shrink:0;
+    text-align:right;
+  }
+  .filesEmpty, .filesLoading{
+    font-size:13px;
+    color:var(--ink);
+    opacity:.55;
+  }
+  #refreshFiles{
+    background:none;
+    border:none;
+    color:var(--gold);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    padding:0;
+    margin-top:16px;
+  }
+
+  footer{
+    margin-top:56px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--ink);
+    opacity:.5;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand-row">
+      <img src="logo.png" alt="Santajulia.">
+      <p class="eyebrow">Santajulia.</p>
+    </div>
+    <p class="tagline">Calidad, calidez y eficiencia.</p>
+    <h1>Dejá tu archivo acá</h1>
+    <p class="lede">Fotos, videos o documentos — cualquiera con este link puede subir, sin necesidad de cuenta ni contraseña.</p>
+  </header>
+
+  <div class="field">
+    <label for="uploader">Tu nombre (opcional)</label>
+    <input type="text" id="uploader" placeholder="Para saber quién lo subió">
+  </div>
+
+  <div id="dropzone">
+    <span class="icon">&#8593;</span>
+    <p class="main-txt">Arrastrá tus archivos acá</p>
+    <p class="sub-txt">o tocá para elegirlos desde tu dispositivo</p>
+    <input type="file" id="fileInput" multiple>
+  </div>
+
+  <div id="queue"></div>
+
+  <div class="actions">
+    <button id="uploadBtn" disabled>Subir archivos</button>
+  </div>
+
+  <div class="ticket" id="ticket">
+    <div class="num" id="ticketNum">000</div>
+    <div class="txt">Archivos recibidos correctamente.<br>Ya están guardados en Santajulia.</div>
+  </div>
+
+  <div class="filesSection">
+    <h2>Archivos subidos</h2>
+    <p class="sub">Lo que ya dejó la gente acá.</p>
+    <div id="filesList" class="filesLoading">Cargando…</div>
+    <button id="refreshFiles">Actualizar lista</button>
+  </div>
+
+  <footer>Santajulia. · los archivos se guardan directamente en Google Drive</footer>
+</div>
+
+<script>
+/* ======================================================
+   CONFIGURACIÓN — reemplazá esta URL por la de tu
+   implementación de Google Apps Script (ver INSTRUCCIONES.md)
+   ====================================================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeOGqt-gKQceD6tUsUPCZFw0-LPj5IBsk9WDX52XWgetXgcZDnnqQ6LiQ9dk7aWm2L/exec";
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const queue = document.getElementById('queue');
+const uploadBtn = document.getElementById('uploadBtn');
+const ticket = document.getElementById('ticket');
+const ticketNum = document.getElementById('ticketNum');
+const uploaderInput = document.getElementById('uploader');
+
+let files = [];
+let uploadedCount = 0;
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+dropzone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.classList.add('drag');
+});
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  addFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => addFiles(e.target.files));
+
+function addFiles(fileList){
+  for (const f of fileList){
+    files.push({ file: f, status: 'pending', el: null });
+  }
+  renderQueue();
+  uploadBtn.disabled = files.length === 0;
+}
+
+function humanSize(bytes){
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+function renderQueue(){
+  queue.innerHTML = '';
+  files.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <span class="name">${item.file.name}</span>
+      <span class="size">${humanSize(item.file.size)}</span>
+      <span class="status ${item.status}" id="status-${i}">${statusLabel(item.status)}</span>
+      <div class="progressBar" id="bar-${i}"></div>
+    `;
+    queue.appendChild(row);
+    item.el = row;
+  });
+}
+
+function statusLabel(s){
+  return { pending:'Esperando', uploading:'Subiendo…', done:'Listo', error:'Error' }[s] || s;
+}
+
+function setStatus(i, status){
+  files[i].status = status;
+  const el = document.getElementById('status-' + i);
+  if (el){
+    el.className = 'status ' + status;
+    el.textContent = statusLabel(status);
+  }
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function setProgress(i, pct){
+  const bar = document.getElementById('bar-' + i);
+  if (bar) bar.style.width = pct + '%';
+  const el = document.getElementById('status-' + i);
+  if (el && files[i].status === 'uploading'){
+    el.textContent = pct < 100 ? ('Subiendo ' + pct + '%') : 'Guardando…';
+  }
+}
+
+function uploadOne(i){
+  return new Promise((resolve) => {
+    const item = files[i];
+    setStatus(i, 'uploading');
+    setProgress(i, 0);
+
+    fileToBase64(item.file).then(base64 => {
+      const payload = JSON.stringify({
+        filename: item.file.name,
+        mimeType: item.file.type || 'application/octet-stream',
+        data: base64,
+        uploader: uploaderInput.value || ''
+      });
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', SCRIPT_URL, true);
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable){
+          const pct = Math.round((e.loaded / e.total) * 100);
+          setProgress(i, pct);
+        }
+      };
+
+      xhr.onload = () => {
+        try{
+          const result = JSON.parse(xhr.responseText);
+          if (result.ok){
+            setStatus(i, 'done');
+            setProgress(i, 100);
+            uploadedCount++;
+          } else {
+            setStatus(i, 'error');
+          }
+        } catch(err){
+          setStatus(i, 'error');
+        }
+        resolve();
+      };
+
+      xhr.onerror = () => {
+        setStatus(i, 'error');
+        resolve();
+      };
+
+      xhr.send(payload);
+    }).catch(() => {
+      setStatus(i, 'error');
+      resolve();
+    });
+  });
+}
+
+const filesList = document.getElementById('filesList');
+const refreshBtn = document.getElementById('refreshFiles');
+
+function humanDate(ms){
+  const d = new Date(ms);
+  return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+async function loadFiles(){
+  filesList.className = 'filesLoading';
+  filesList.textContent = 'Cargando…';
+  try{
+    const res = await fetch(SCRIPT_URL + '?action=list');
+    const result = await res.json();
+    if (!result.ok){
+      filesList.className = 'filesEmpty';
+      filesList.textContent = 'No se pudo cargar la lista.';
+      return;
+    }
+    if (result.files.length === 0){
+      filesList.className = 'filesEmpty';
+      filesList.textContent = 'Todavía no hay archivos.';
+      return;
+    }
+    filesList.className = '';
+    filesList.innerHTML = '';
+    result.files.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'fileRow';
+      row.innerHTML = `
+        <a href="${f.downloadUrl}" download="${f.name}">${f.name}</a>
+        <span class="meta">${humanSize(f.size)} · ${humanDate(f.date)}</span>
+      `;
+      filesList.appendChild(row);
+    });
+  } catch(err){
+    filesList.className = 'filesEmpty';
+    filesList.textContent = 'No se pudo cargar la lista.';
+  }
+}
+
+refreshBtn.addEventListener('click', loadFiles);
+loadFiles();
+
+uploadBtn.addEventListener('click', async () => {
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = 'Subiendo…';
+  const pending = files.map((f,i)=>i).filter(i => files[i].status === 'pending' || files[i].status === 'error');
+  for (const i of pending){
+    await uploadOne(i);
+  }
+  uploadBtn.textContent = 'Subir archivos';
+  uploadBtn.disabled = false;
+  if (uploadedCount > 0){
+    ticketNum.textContent = String(uploadedCount).padStart(3, '0');
+    ticket.classList.add('show');
+    loadFiles();
+  }
+});
+</script>
+</body>
+</html>
